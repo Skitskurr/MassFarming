@@ -1,0 +1,3 @@
+usePermissions: false
+#if set to false hoes will not loose durability while mass farming
+reduceDurability: true

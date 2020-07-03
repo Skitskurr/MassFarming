@@ -1,0 +1,11 @@
+main: com.skitskurr.massfarming.Main
+name: MassFarming
+version: 1.0
+description: A QoL plugin that makes farming easier.
+api-version: 1.16
+author: Skitskurr
+
+permissions:
+  skitskurr.massfarming:
+    description: Allows players to use the massfarming function. Only required if usePermissions in the config is set to true.
+    default: false
