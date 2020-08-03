@@ -34,7 +34,7 @@ public class EventListener implements Listener {
 	private final boolean reduceDurability;
 	private final Tag<Material> tagHoes;
 	private final Tag<Material> tagSeeds;
-	private final Map<Material, Material> plants = new HashMap<>();
+	private final Map<Material, Plant> plants = new HashMap<>();
   
 	public EventListener(final Main plugin) {
 		this.plugin = plugin;
@@ -46,13 +46,16 @@ public class EventListener implements Listener {
 		final NamespacedKey key = new NamespacedKey(this.plugin, EventListener.NAMESPACED_KEY);
 		this.tagHoes = new MaterialTag(key, new Material[] { Material.WOODEN_HOE, Material.STONE_HOE,
 				Material.IRON_HOE, Material.GOLDEN_HOE, Material.DIAMOND_HOE, Material.NETHERITE_HOE });
-		this.tagSeeds = new MaterialTag(key, new Material[] { Material.WHEAT_SEEDS, Material.POTATO,
-				Material.CARROT, Material.BEETROOT_SEEDS });
    
-		this.plants.put(Material.WHEAT_SEEDS, Material.WHEAT);
-		this.plants.put(Material.POTATO, Material.POTATOES);
-		this.plants.put(Material.CARROT, Material.CARROTS);
-		this.plants.put(Material.BEETROOT_SEEDS, Material.BEETROOTS);
+		this.plants.put(Material.WHEAT_SEEDS, new Plant(Material.WHEAT));
+		this.plants.put(Material.POTATO, new Plant(Material.POTATOES));
+		this.plants.put(Material.CARROT, new Plant(Material.CARROTS));
+		this.plants.put(Material.BEETROOT_SEEDS, new Plant(Material.BEETROOTS));
+		this.plants.put(Material.MELON_SEEDS, new Plant(Material.MELON_STEM, true));
+		this.plants.put(Material.PUMPKIN_SEEDS, new Plant(Material.PUMPKIN_STEM, true));
+		
+
+		this.tagSeeds = new MaterialTag(key, this.plants.keySet().toArray(new Material[0]));
 	}  
 	
 	@EventHandler
@@ -84,12 +87,21 @@ public class EventListener implements Listener {
 			return;
 		}
   
-		final Material plantType = this.plants.get(seedType);
+		final Plant plantResult = this.plants.get(seedType);
+		final Material plantType = plantResult.getResult();
+		final boolean onlyOther = plantResult.onlyOther();
+		
 		final HelixIterator helixIterator = new HelixIterator(block, 3);
 		int amount = seed.getAmount();
-   
+		boolean other = false;
+		
 		while (helixIterator.hasNext() && amount > 1 && tool.getType() != Material.AIR) {
 			final Block soil = helixIterator.next();
+			
+			if(onlyOther && (other = !other)) {
+				continue;
+			}
+			
 			if (soil.getType() != Material.FARMLAND) {
 				continue;
 			}
@@ -99,6 +111,8 @@ public class EventListener implements Listener {
 				continue;
 			}
       
+			// TODO: block place event to check if the player is allowed to build there
+			
 			plant.setType(plantType);
       
 			seed.setAmount(--amount);
