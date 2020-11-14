@@ -1,7 +1,12 @@
-package com.skitskurr.massfarming;
+package com.versuchdrei.massfarming;
 
 import org.bukkit.Material;
 
+/**
+ * a wrapper class for plant properties
+ * @author VersuchDrei
+ * @version 1.0
+ */
 public class Plant {
 	
 	private final Material result;

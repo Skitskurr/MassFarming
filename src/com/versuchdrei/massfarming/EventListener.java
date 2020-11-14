@@ -1,4 +1,4 @@
-package com.skitskurr.massfarming;
+package com.versuchdrei.massfarming;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -16,10 +16,16 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
-import com.skitskurr.massfarming.utils.HelixIterator;
-import com.skitskurr.massfarming.utils.ItemUtils;
-import com.skitskurr.massfarming.utils.MaterialTag;
+import com.versuchdrei.massfarming.utils.HelixIterator;
+import com.versuchdrei.massfarming.utils.ItemUtils;
+import com.versuchdrei.massfarming.utils.MaterialTag;
 
+/**
+ * the event listener for mass farming, 
+ * handles seed placement and fills more farmland
+ * @author VersuchDrei
+ * @version 1.0
+ */
 public class EventListener implements Listener {
 	
 	private static final String NAMESPACED_KEY = "skitskurr_massfarming";

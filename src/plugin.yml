@@ -1,9 +1,9 @@
-main: com.skitskurr.massfarming.Main
+main: com.versuchdrei.massfarming.Main
 name: MassFarming
 version: 1.0
 description: A QoL plugin that makes farming easier.
 api-version: 1.16
-author: Skitskurr
+author: VersuchDrei
 
 permissions:
   skitskurr.massfarming:

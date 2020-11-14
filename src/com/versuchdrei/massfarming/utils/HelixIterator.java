@@ -1,10 +1,15 @@
-package com.skitskurr.massfarming.utils;
+package com.versuchdrei.massfarming.utils;
 
 import java.util.Iterator;
 
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 
+/**
+ * a block iterator moving in the shape of a helix around the centered block, only moves on x and z coordinates
+ * @author VersuchDrei
+ * @version 1.0
+ */
 public class HelixIterator implements Iterator<Block> {
 	
 	private Block current;
