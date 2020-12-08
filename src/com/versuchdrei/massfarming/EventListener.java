@@ -15,6 +15,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.util.Vector;
 
 import com.versuchdrei.massfarming.utils.HelixIterator;
 import com.versuchdrei.massfarming.utils.ItemUtils;
@@ -97,7 +98,8 @@ public class EventListener implements Listener {
 		final Material plantType = plantResult.getResult();
 		final boolean onlyOther = plantResult.onlyOther();
 		
-		final HelixIterator helixIterator = new HelixIterator(block, 3);
+		final Vector vector = player.getEyeLocation().getDirection();
+		final HelixIterator helixIterator = new HelixIterator(block, 8, vector.getX() > 0, vector.getZ() > 0);
 		int amount = seed.getAmount();
 		boolean other = false;
 		
