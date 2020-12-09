@@ -12,6 +12,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -41,6 +42,7 @@ public class EventListener implements Listener {
 	private final boolean reduceDurability;
 	private final Tag<Material> tagHoes;
 	private final Tag<Material> tagSeeds;
+	private final Tag<Material> tagPlants;
 	private final Map<Material, Plant> plants = new HashMap<>();
   
 	public EventListener(final Main plugin) {
@@ -63,6 +65,7 @@ public class EventListener implements Listener {
 		
 
 		this.tagSeeds = new MaterialTag(key, this.plants.keySet().toArray(new Material[0]));
+		this.tagPlants = new MaterialTag(key, this.plants.entrySet().stream().map(entry -> entry.getValue().getResult()).toArray(Material[]::new));
 	}  
 	
 	@EventHandler
@@ -130,6 +133,47 @@ public class EventListener implements Listener {
 				inventory.setItemInOffHand(tool);
 			} 
 		} 
+	}
+	
+	@EventHandler
+	public void onBreak(final BlockBreakEvent event) {
+			final Block block = event.getBlock();
+			final Material type = block.getType();
+			if (!this.tagPlants.isTagged(type)) {
+				return;
+			}
+			
+			final Player player = event.getPlayer();
+			if (!permissionCheck(player)) {
+				return;
+			}
+	 
+			final PlayerInventory inventory = player.getInventory();
+	  
+			final ItemStack tool = inventory.getItemInMainHand();
+			if (!this.tagHoes.isTagged(tool.getType())) {
+				return;
+			}
+			
+			final Vector vector = player.getEyeLocation().getDirection();
+			final HelixIterator helixIterator = new HelixIterator(block, 8, vector.getX() > 0, vector.getZ() > 0);
+			
+			while (helixIterator.hasNext() && tool.getType() != Material.AIR) {
+				final Block plant = helixIterator.next();
+				
+				if (plant.getType() != type) {
+					continue;
+				}
+	      
+				// TODO: block break event to check if the player is allowed to build there
+				// needs a metadata tag to avoid recursion
+				
+				plant.breakNaturally();
+				if (this.reduceDurability) {
+					ItemUtils.reduceDurability(tool);
+					inventory.setItemInMainHand(tool);
+				} 
+			} 
 	}
 	
 	private boolean permissionCheck(final Player player) {
