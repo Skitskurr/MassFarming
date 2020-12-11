@@ -7,13 +7,18 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.Tag;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.Dispenser;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.Directional;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockDispenseEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.util.Vector;
@@ -137,43 +142,86 @@ public class EventListener implements Listener {
 	
 	@EventHandler
 	public void onBreak(final BlockBreakEvent event) {
-			final Block block = event.getBlock();
-			final Material type = block.getType();
-			if (!this.tagPlants.isTagged(type)) {
-				return;
-			}
-			
-			final Player player = event.getPlayer();
-			if (!permissionCheck(player)) {
-				return;
-			}
+		final Block block = event.getBlock();
+		final Material type = block.getType();
+		if (!this.tagPlants.isTagged(type)) {
+			return;
+		}
+		
+		final Player player = event.getPlayer();
+		if (!permissionCheck(player)) {
+			return;
+		}
 	 
-			final PlayerInventory inventory = player.getInventory();
+		final PlayerInventory inventory = player.getInventory();
 	  
-			final ItemStack tool = inventory.getItemInMainHand();
-			if (!this.tagHoes.isTagged(tool.getType())) {
-				return;
+		final ItemStack tool = inventory.getItemInMainHand();
+		if (!this.tagHoes.isTagged(tool.getType())) {
+			return;
+		}
+			
+		final Vector vector = player.getEyeLocation().getDirection();
+		final HelixIterator helixIterator = new HelixIterator(block, 8, vector.getX() > 0, vector.getZ() > 0);
+			
+		while (helixIterator.hasNext() && tool.getType() != Material.AIR) {
+			final Block plant = helixIterator.next();
+				
+			if (plant.getType() != type) {
+				continue;
 			}
-			
-			final Vector vector = player.getEyeLocation().getDirection();
-			final HelixIterator helixIterator = new HelixIterator(block, 8, vector.getX() > 0, vector.getZ() > 0);
-			
-			while (helixIterator.hasNext() && tool.getType() != Material.AIR) {
-				final Block plant = helixIterator.next();
+      
+			// TODO: block break event to check if the player is allowed to build there
+			// needs a metadata tag to avoid recursion
 				
-				if (plant.getType() != type) {
-					continue;
-				}
-	      
-				// TODO: block break event to check if the player is allowed to build there
-				// needs a metadata tag to avoid recursion
-				
-				plant.breakNaturally();
-				if (this.reduceDurability) {
-					ItemUtils.reduceDurability(tool);
-					inventory.setItemInMainHand(tool);
-				} 
+			plant.breakNaturally();
+			if (this.reduceDurability) {
+				ItemUtils.reduceDurability(tool);
+				inventory.setItemInMainHand(tool);
 			} 
+		}
+	}
+	
+	@EventHandler
+	public void onDispense(final BlockDispenseEvent event) {
+		final ItemStack item = event.getItem();
+		final Material seed = item.getType();
+		if(!this.tagSeeds.isTagged(seed)) {
+			return;
+		}
+		
+		final Block block = event.getBlock();
+		if(block.getType() != Material.DISPENSER) {
+			return;
+		}
+		
+		final BlockData data = block.getBlockData();
+		if(!(data instanceof Directional)) {
+			return;
+		}
+		
+		final Block facing = block.getRelative(((Directional) data).getFacing());
+		if(facing.getX() == 0 || facing.getType() != Material.AIR) {
+			return;
+		}
+		
+		if(facing.getRelative(BlockFace.DOWN).getType() != Material.FARMLAND) {
+			return;
+		}
+		
+		event.setCancelled(true);
+		facing.setType(this.plants.get(seed).getResult());
+		final Inventory inventory = ((Dispenser) block.getState()).getInventory();
+		final ItemStack[] contents = inventory.getContents();
+		for(final ItemStack content: contents) {
+			if(content == null) {
+				continue;
+			}
+			if(content.getType() == seed) {
+				content.setAmount(content.getAmount() - 1);
+				break;
+			}
+		}
+		inventory.setContents(contents);
 	}
 	
 	private boolean permissionCheck(final Player player) {
